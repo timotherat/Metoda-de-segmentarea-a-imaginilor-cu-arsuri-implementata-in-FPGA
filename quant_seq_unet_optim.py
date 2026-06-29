@@ -174,6 +174,7 @@ class QuantSeqUNet(nn.Module):
         self.quant_inp = QuantIdentity(act_quant=self.InputQuant, bit_width=self.act_bw, return_quant_tensor=True)
 
         # Encoder
+        self.c1 = self.conv_block(3, 8, dropout=0.05) #3 input channels
         self.d1 = QuantConv2d(8, 8, kernel_size=2, stride=2, weight_bit_width=self.weight_bw, bias=False)
 
         self.c2 = self.conv_block(8, 16, dropout=0.05)
@@ -378,12 +379,14 @@ for i in range(0, len(X_train), 16):
 preds = np.concatenate(preds_list, axis=0)
 preds_t = (preds > 0.5).astype(np.uint8)
 
-ix = random.randint(0, len(X_train) - 1)
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-axes[0].imshow(np.transpose(X_train[ix], (1, 2, 0))); axes[0].set_title("Image"); axes[0].axis("off")
-axes[1].imshow(np.squeeze(Y_train[ix]), cmap='gray'); axes[1].set_title("Ground Truth"); axes[1].axis("off")
-axes[2].imshow(np.squeeze(preds_t[ix]), cmap='gray'); axes[2].set_title("Prediction"); axes[2].axis("off")
-plt.tight_layout(); plt.show()
+#sanity check for the training process
+for i in range(10):
+    ix = random.randint(0, len(X_train) - 1)
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    axes[0].imshow(np.transpose(X_train[ix], (1, 2, 0))); axes[0].set_title("Image"); axes[0].axis("off")
+    axes[1].imshow(np.squeeze(Y_train[ix]), cmap='gray'); axes[1].set_title("Ground Truth"); axes[1].axis("off")
+    axes[2].imshow(np.squeeze(preds_t[ix]), cmap='gray'); axes[2].set_title("Prediction"); axes[2].axis("off")
+    plt.tight_layout(); plt.show()
 
 fig, axes = plt.subplots(4, 2, figsize=(10, 20))
 for i in range(4):
